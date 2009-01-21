@@ -8,7 +8,7 @@ class Report
 
   attr_writer(:date_format, :time_format, :datetime_format, :currency_unit)
 
-  def self.link_to(klass, options={})
+  def self.link_to(options={})
     text = options.delete(:link_text)
     lambda { |x|
       [

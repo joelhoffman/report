@@ -7,7 +7,7 @@ class Report
     content_tag(:table,
                 html_thead(params) + html_tfoot + html_table_bodies(params), 
                 :class => ["report-table", identifier].reject(&:blank?).join(" "),
-                :style => "width: #{ html_options[:width] || '100%' };")
+                :style => "width: #{ html_options[:width] || 'auto' };")
   end
 
   def format_html(type, data=nil, options={ })

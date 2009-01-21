@@ -65,6 +65,14 @@ class Report
       c(type, val1, type, val2)
     end
     
+    def default_value
+      case type
+      when :text : nil
+      when :html : ""
+      else         nil
+      end
+    end
+
     private
 
     def sortable_html_header(params, identifier)
@@ -105,13 +113,6 @@ class Report
       end
     end
 
-    def default_value
-      case type
-      when :text : nil
-      when :html : ""
-      else         nil
-      end
-    end
     
   end
 end

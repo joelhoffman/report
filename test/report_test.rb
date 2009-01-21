@@ -46,7 +46,7 @@ class ReportTest < Test::Unit::TestCase
           when Hash: hash_to_string(pfx, v)
           else       "#{pfx}=#{v}"
           end
-        }.join("&")
+        }.sort.join("&")
       end
 
       args = args[:overwrite_params] if args.has_key?(:overwrite_params)
@@ -58,8 +58,8 @@ class ReportTest < Test::Unit::TestCase
   def test_mock_controller
     m = MockController.new
     assert_equal("http://hello/world?", m.url_for())
-    assert_equal("http://hello/world?k=v&k2=v2", m.url_for( :k => 'v', :k2 => 'v2'  ))
-    assert_equal("http://hello/world?k[k1]=v&k2=v2", m.url_for( :k => { :k1 => 'v' }, :k2 => 'v2' ))
+    assert_equal("http://hello/world?k2=v2&k=v", m.url_for( :k => 'v', :k2 => 'v2'  ))
+    assert_equal("http://hello/world?k2=v2&k[k1]=v", m.url_for( :k => { :k1 => 'v' }, :k2 => 'v2' ))
 
   end
 
@@ -121,7 +121,7 @@ EOD
                     ["val3", Date.parse("October 14, 2011")]])
 
     assert_equal_ignoring_whitespace_and_quote_style(<<EOD, r.html_table({ }))
-<table class="report-table report" style="width: 100%;">
+<table class="report-table report" style="width: auto;">
   <thead>
     <tr><th><span>Value</span></th>
         <th><span>Date</span></th></tr>
@@ -149,24 +149,24 @@ EOD
                    :controller => MockController.new,
                    :show_footer => true,
                    :identifier => "xyz",
-                   :html_options => { :width => "auto" })
+                   :html_options => { :width => "100%" })
 
     # this is a sortable report with multiple table bodies, column groups,
     # a distinct identifier, a specified width, IDs on rows from a hidden
     # column, a footer containing the maximum date, and sorted by date
 
     assert_equal_ignoring_whitespace_and_quote_style(<<EOD, r.html_table({ '_reports' => { 'xyz' => { 'order' => 'Date', 'direction' => 'asc' }}}))
-<table class="report-table xyz" style="width: auto;">
+<table class="report-table xyz" style="width: 100%;">
   <colgroup span="1"></colgroup>
   <colgroup span="1"></colgroup>
   <thead>
     <tr><th colspan="1">Column 1</th>
         <th colspan="1"></th></tr>
     <tr>
-      <th><span><a href="http://hello/world?_reports[xyz][order]=Column 1_Value&amp;_reports[xyz][direction]=asc" class="sortable-header">Value</a></span></th>
+      <th><span><a href="http://hello/world?_reports[xyz][direction]=asc&amp;_reports[xyz][order]=Column 1_Value" class="sortable-header">Value</a></span></th>
       <th>
         <span>
-          <a href="http://hello/world?_reports[xyz][order]=Date&amp;_reports[xyz][direction]=desc" 
+          <a href="http://hello/world?_reports[xyz][direction]=desc&amp;_reports[xyz][order]=Date" 
              class="sortable-header current">
             <img src="/images/sort-desc.gif" width="8" height="6" />
             Date

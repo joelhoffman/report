@@ -4,10 +4,20 @@ class Report
   attr_accessor(:columns, :identifier, :title, :subtitle, :explanatory_text, :format_before, 
                 :render_first, :render_after_title, :link_after_title, :controller,
                 :link_after, :show_footer, :format_after, :table_class, :show_csv, :clickable_row,
-                :empty_title, :empty_link)
+                :empty_title, :empty_link, :model)
 
   attr_writer(:date_format, :time_format, :datetime_format, :currency_unit)
 
+  def self.link_to(klass, options={})
+    text = options.delete(:link_text)
+    lambda { |x|
+      [
+        (if text.is_a?(Symbol) then x.send(text) else text end),
+        { :controller => x.class.to_s.tableize.pluralize, :action => :show, :id => x }.merge(options) 
+      ]
+    }
+  end
+  
   def currency_unit
     @currency_unit || '$'
   end
@@ -45,11 +55,18 @@ class Report
   end
   
   def initialize(cols=nil, records=nil, options = { })
+    record_klass = options[:model]  
     unless cols.nil?
       i = -1;
       self.columns = cols.map { |col|
         i += 1
         case col
+        when Symbol
+          kol = record_klass.report_columns[col]
+          kol &&= kol.clone 
+          kol ||= Column.new(col.to_s.humanize, true, :text, col)
+          kol.index = i
+          kol
         when Array
           col[4] ||= { }
           col[5] = i

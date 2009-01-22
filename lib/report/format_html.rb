@@ -41,9 +41,12 @@ class Report
   end
 
   def html_th(col, params)
+    html_class = [col.html_class(params, identifier), col.options[:class]].reject(&:blank?).join(" ")
     content_tag(:th, 
                 content_tag(:span, format_html(*col.format_html_header(params, identifier))),
-                col.options.slice(:style, :title, :class))
+                col.options.slice(:style, :title).merge({
+                  :class => html_class
+                }))
   end
 
   def html_tfoot

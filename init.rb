@@ -10,11 +10,15 @@ ActiveRecord::Base.class_eval do
   end
   
   def self.report_column(label, options = {})
+    def self.default(v1,v2)
+      if v1.nil? then v2 else v1 end
+    end
+    
     @report_columns ||= { }
-    @report_columns[label] = Report::Column.new(options[:header]    || label.to_s.humanize, 
-                                                options[:sortable]  || true,
-                                                options[:type]      || :text,
-                                                options[:data_proc] || label,
-                                                options[:options]   || {})
+    @report_columns[label] = Report::Column.new(default(options.delete(:header),   label.to_s.humanize),
+                                                default(options.delete(:sortable), true),
+                                                default(options.delete(:type),     :text),
+                                                default(options.delete(:data_proc),label),
+                                                options)
   end
 end

@@ -73,14 +73,34 @@ class Report
       end
     end
 
+    def html_class(params, identifier)
+      current_order, current_direction = order_and_direction(params, identifier)
+      
+      if sortable
+        if column_id == current_order.to_s
+        then "sortable-header current #{ current_direction }"
+        else "sortable-header"
+        end
+      else
+        ""
+      end
+    end
+    
     private
 
-    def sortable_html_header(params, identifier)
+    def order_and_direction(params, identifier)
       params['_reports'] ||= { }
       params['_reports'][identifier] ||= { }
       
       current_order, current_direction = params['_reports'][identifier]["order"], params['_reports'][identifier]["direction"]
       current_direction ||= 'desc'
+
+      return current_order, current_direction
+    end
+    
+
+    def sortable_html_header(params, identifier)
+      current_order, current_direction = order_and_direction(params, identifier)
       
       if current_order == column_id
         direction_to_link_to = (current_direction == 'desc') ? 'asc' : 'desc'
@@ -88,18 +108,15 @@ class Report
         direction_to_link_to = 'asc'
       end
       
-      img = "<img src='/images/sort-#{direction_to_link_to}.gif' width='8' height='6' />"
-   
       if column_id == current_order.to_s
-        [img + " " + name, 
+        [name.blank? ? "-" : name, 
          { :overwrite_params => { "_reports" => params["_reports"].merge({ identifier => { "order" => column_id, 
-                                                                             "direction" => direction_to_link_to  }}) } }, 
-         { :class => "sortable-header current" } ]
-      else
+                                                                             "direction" => direction_to_link_to  }}) } }] 
+      else         
         [name.blank? ? "-" : name, 
          { :overwrite_params => { "_reports" => params["_reports"].merge({ identifier => { "order" => column_id, 
                                                                              "direction" => direction_to_link_to  }}) } }, 
-         { :class => "sortable-header" }]
+        ]
       end
     end
     

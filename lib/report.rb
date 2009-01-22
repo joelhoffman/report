@@ -119,8 +119,9 @@ class Report
     d.map { |row| 
       columns.map { |c| 
         case c.data_proc 
-        when Symbol: row.send(c.data_proc)
-        else c.data_proc.call(row) 
+        when Symbol:  row.send(c.data_proc)
+        when Proc:    c.data_proc.call(row)
+        else          nil
         end || c.default_value 
       }
     }

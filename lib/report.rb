@@ -62,9 +62,10 @@ class Report
         i += 1
         case col
         when Symbol
-          kol = record_klass.report_columns[col]
-          kol &&= kol.clone 
-          kol ||= Column.new(col.to_s.humanize, true, :text, col)
+          kol = if record_klass.report_columns.has_key? col.to_sym
+                then record_klass.report_columns[col.to_sym].clone
+                else Column.new(col.to_s.humanize, true, :text, col)
+                end
           kol.index = i
           kol
         when Array

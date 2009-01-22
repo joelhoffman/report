@@ -11,10 +11,10 @@ ActiveRecord::Base.class_eval do
   
   def self.report_column(label, options = {})
     @report_columns ||= { }
-    @report_columns[label] = Report::Column.new(label.to_s.humanize, 
-                                                options[:sortable] || true,
-                                                options[:type] || :text,
-                                                options[:data_proc],
-                                                options[:options] || {})
+    @report_columns[label] = Report::Column.new(options[:header]    || label.to_s.humanize, 
+                                                options[:sortable]  || true,
+                                                options[:type]      || :text,
+                                                options[:data_proc] || label,
+                                                options[:options]   || {})
   end
 end

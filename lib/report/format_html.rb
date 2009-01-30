@@ -58,10 +58,11 @@ class Report
                             }.join("")))
   end
 
-  def html_table_row(row, idc)                   
+  def html_table_row(row, idc, index)
     tr_options = { }
     tr_options[:id] = identifier.underscore + ':' + row[idc.index].to_s.underscore if idc
-
+    tr_options[:class] = if index.even? then 'even' else 'odd' end
+    
     content_tag(:tr,
                 visible_columns.map { |col| 
                   content_tag(:td, format_html(col.type, row[col.index]), :class => col.options[:class]) 
@@ -75,7 +76,8 @@ class Report
     data_segments.map { |records| 
       content_tag(:tbody, 
                   sort_data(data_to_output(records), order, direction)\
-                    .map { |row| html_table_row(row, idc) }.join(""))
+                    .zip((1..records.length).to_a)\
+                    .map { |row, index| html_table_row(row, idc, index) }.join(""))
     }.join("")
   end
 end

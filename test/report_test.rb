@@ -123,15 +123,15 @@ EOD
     assert_equal_ignoring_whitespace_and_quote_style(<<EOD, r.html_table({ }))
 <table class="report-table report" style="width: auto;">
   <thead>
-    <tr><th><span>Value</span></th>
-        <th><span>Date</span></th></tr>
+    <tr><th class=""><span>Value</span></th>
+        <th class=""><span>Date</span></th></tr>
   </thead>
   <tbody>
-    <tr><td>val1</td>
+    <tr class="odd"><td>val1</td>
         <td>05/01/1969</td></tr>
-    <tr><td>val2</td>
+    <tr class="even"><td>val2</td>
         <td>06/03/1922</td></tr>
-    <tr><td>val3</td>
+    <tr class="odd"><td>val3</td>
         <td>10/14/2011</td></tr>
   </tbody>
 </table>
@@ -163,12 +163,10 @@ EOD
     <tr><th colspan="1">Column 1</th>
         <th colspan="1"></th></tr>
     <tr>
-      <th><span><a href="http://hello/world?_reports[xyz][direction]=asc&amp;_reports[xyz][order]=Column 1_Value" class="sortable-header">Value</a></span></th>
-      <th>
+      <th class="sortable-header"><span><a href="http://hello/world?_reports[xyz][direction]=asc&amp;_reports[xyz][order]=Column 1_Value">Value</a></span></th>
+      <th class="sortable-header current asc">
         <span>
-          <a href="http://hello/world?_reports[xyz][direction]=desc&amp;_reports[xyz][order]=Date" 
-             class="sortable-header current">
-            <img src="/images/sort-desc.gif" width="8" height="6" />
+          <a href="http://hello/world?_reports[xyz][direction]=desc&amp;_reports[xyz][order]=Date">
             Date
           </a>
         </span>
@@ -179,13 +177,13 @@ EOD
     <tr><td></td><td>10/14/2011</td></tr>
   </tfoot>
   <tbody>
-    <tr id="xyz:1"><td>val2</td>
+    <tr class="odd" id="xyz:1"><td>val2</td>
         <td>06/03/1968</td></tr>
-    <tr id="xyz:0"><td>val1</td>
+    <tr class="even" id="xyz:0"><td>val1</td>
         <td>05/01/1969</td></tr>
   </tbody>
   <tbody>
-    <tr id="xyz:2"><td>val3</td>
+    <tr class="odd" id="xyz:2"><td>val3</td>
         <td>10/14/2011</td></tr>
   </tbody>
 </table>

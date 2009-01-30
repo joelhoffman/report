@@ -100,14 +100,14 @@ class ReportTest < Test::Unit::TestCase
     r = Report.new([["Value", true, :text, lambda { |a| a[0] }],
                     ["Date",  true, :date, lambda { |a| a[1] }]], 
 
-                   [["val2", Date.parse("June 3, 1922")],
+                   [["Val2", Date.parse("June 3, 1922")],
                     ["val1", Date.parse("May 1, 1969")],
                     ["val3", Date.parse("October 14, 2011")]])
 
     assert_equal_ignoring_whitespace_and_quote_style(<<EOD, r.csv({ }))
 Value, Date
 val1,  05/01/1969
-val2,  06/03/1922
+Val2,  06/03/1922
 val3,  10/14/2011
 EOD
   end
@@ -116,7 +116,7 @@ EOD
     r = Report.new([["Value", false, :text, lambda { |a| a[0] }],
                     ["Date",  false, :date, lambda { |a| a[1] }]], 
 
-                   [["val2", Date.parse("June 3, 1922")],
+                   [["Val2", Date.parse("June 3, 1922")],
                     ["val1", Date.parse("May 1, 1969")],
                     ["val3", Date.parse("October 14, 2011")]])
 
@@ -129,7 +129,7 @@ EOD
   <tbody>
     <tr class="odd"><td>val1</td>
         <td>05/01/1969</td></tr>
-    <tr class="even"><td>val2</td>
+    <tr class="even"><td>Val2</td>
         <td>06/03/1922</td></tr>
     <tr class="odd"><td>val3</td>
         <td>10/14/2011</td></tr>
@@ -144,7 +144,7 @@ EOD
                     ["Date",  true, :date, lambda { |a| a[2] }, { :footer => lambda { |rows| rows.map(&:last).max }}]], 
                    nil, # data records
                    :data_segments => [[[0, "val1", Date.parse("May 1, 1969")],
-                                       [1, "val2", Date.parse("June 3, 1968")]],
+                                       [1, "Val2", Date.parse("June 3, 1968")]],
                                       [[2, "val3", Date.parse("October 14, 2011")]]],
                    :controller => MockController.new,
                    :show_footer => true,
@@ -177,7 +177,7 @@ EOD
     <tr><td></td><td>10/14/2011</td></tr>
   </tfoot>
   <tbody>
-    <tr class="odd" id="xyz:1"><td>val2</td>
+    <tr class="odd" id="xyz:1"><td>Val2</td>
         <td>06/03/1968</td></tr>
     <tr class="even" id="xyz:0"><td>val1</td>
         <td>05/01/1969</td></tr>

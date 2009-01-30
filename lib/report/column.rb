@@ -49,7 +49,7 @@ class Report
 
     def compare(val1, val2)
       def self.c(type1, val1, type2, val2)
-        return val1.to_s <=> val2.to_s unless type1 == type2
+        return val1.to_s.downcase <=> val2.to_s.downcase unless type1 == type2
         case type1
         when :format  : c(*(val1 + val2))
         when :formats : 
@@ -126,7 +126,7 @@ class Report
       when :date     : val
       when :datetime : val
       when :boolean  : val ? 1 : 0
-      else             val.nil? ? nil : val.to_s
+      else             val.nil? ? nil : val.to_s.downcase
       end
     end
 

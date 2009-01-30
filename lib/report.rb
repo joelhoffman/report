@@ -193,7 +193,7 @@ class Report
       if record_klass.report_columns.has_key? col.to_sym
         record_klass.report_columns[col.to_sym].clone
       elsif col == :edit or col == :show
-        Column.new('', :link, false, self.class.link_to(:link_text => col.to_s.capitalize, :action => col))
+        Column.new('', false, :link, self.class.link_to(:link_text => col.to_s.capitalize, :action => col))
       else
         Column.new(col.to_s.humanize, true, :text, col)
       end

@@ -60,7 +60,7 @@ class Report
       i = -1;
       self.columns = cols.map { |col|
         i += 1
-        col = infer_column(col)
+        col = infer_column(col, record_klass)
         col.index = i
         col
       }
@@ -187,7 +187,7 @@ class Report
     end
   end
   
-  def infer_column(col)
+  def infer_column(col, record_klass)
     case col
     when Symbol
       if record_klass.report_columns.has_key? col.to_sym

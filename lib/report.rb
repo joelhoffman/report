@@ -53,39 +53,16 @@ class Report
   def html_options=(h)
     @html_options = h
   end
-  
+
   def initialize(cols=nil, records=nil, options = { })
     record_klass = options[:model]  
     unless cols.nil?
       i = -1;
       self.columns = cols.map { |col|
         i += 1
-        case col
-        when Symbol
-          kol = if record_klass.report_columns.has_key? col.to_sym
-                then record_klass.report_columns[col.to_sym].clone
-                else Column.new(col.to_s.humanize, true, :text, col)
-                end
-          kol.index = i
-          kol
-        when Array
-          col[4] ||= { }
-          col[5] = i
-          Column.new(*col)
-        when Hash
-          Column.new(col[:name],
-                     col[:sortable],
-                     col[:type],
-                     col[:data_proc],
-                     col[:options] || { },
-                     i)
-        when Column
-          kol = col.clone
-          kol.index = i
-          kol
-        else
-          raise "Unknown column type: " + col.inspect
-        end
+        col = infer_column(col)
+        col.index = i
+        col
       }
     end
     self.data = records
@@ -209,4 +186,34 @@ class Report
       end
     end
   end
+  
+  def infer_column(col)
+    case col
+    when Symbol
+      if record_klass.report_columns.has_key? col.to_sym
+        record_klass.report_columns[col.to_sym].clone
+      elsif col == :edit or col == :show
+        Column.new(:name => col.to_s.capitalize,
+                   :type => :link, 
+                   :sortable => false, 
+                   :header => '', 
+                   :data_proc => Report.link_to(:link_text => col.to_s.capitalize, :action => col))
+      else
+        Column.new(col.to_s.humanize, true, :text, col)
+      end
+    when Array
+      col[4] ||= { }
+      Column.new(*col)
+    when Hash
+      Column.new(col[:name],
+                 col[:sortable],
+                 col[:type],
+                 col[:data_proc],
+                 col[:options] || { })
+    when Column
+      col.clone
+    else
+      raise "Unknown column type: " + col.inspect
+    end
+  end  
 end

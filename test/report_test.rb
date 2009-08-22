@@ -7,7 +7,7 @@ require 'action_controller'
 require 'action_view'
 require File.dirname(__FILE__) + "/../init"
 
-class ReportTest < Test::Unit::TestCase
+class ReportTableTest < Test::Unit::TestCase
   
   def test_columns
     # array declaration
@@ -23,14 +23,14 @@ class ReportTest < Test::Unit::TestCase
     }
     
     #direct declaration
-    col3 = Report::Column.new("col 3", true, :text, lambda { })
+    col3 = ReportTable::Column.new("col 3", true, :text, lambda { })
     
-    r = Report.new([ col1, col2, col3 ],
+    r = ReportTable.new([ col1, col2, col3 ],
                    [])
     
     assert_equal 3, r.columns.length
 
-    r.columns.each { |c| assert_kind_of(Report::Column, c) }
+    r.columns.each { |c| assert_kind_of(ReportTable::Column, c) }
     
     assert_equal [ [ 'c1', r.columns[0..1] ], [ nil, r.columns[2..2] ] ], r.column_groups
     
@@ -64,7 +64,7 @@ class ReportTest < Test::Unit::TestCase
   end
 
   def test_format
-    r = Report.new([], [], 
+    r = ReportTable.new([], [], 
                    :date_format => "%d-%b-%Y", :time_format => "%H:%M", :currency_unit => "£",
                    :controller => MockController.new)
     
@@ -97,7 +97,7 @@ class ReportTest < Test::Unit::TestCase
   end
 
   def test_csv
-    r = Report.new([["Value", true, :text, lambda { |a| a[0] }],
+    r = ReportTable.new([["Value", true, :text, lambda { |a| a[0] }],
                     ["Date",  true, :date, lambda { |a| a[1] }]], 
 
                    [["Val2", Date.parse("June 3, 1922")],
@@ -113,7 +113,7 @@ EOD
   end
 
   def test_basic_html
-    r = Report.new([["Value", false, :text, lambda { |a| a[0] }],
+    r = ReportTable.new([["Value", false, :text, lambda { |a| a[0] }],
                     ["Date",  false, :date, lambda { |a| a[1] }]], 
 
                    [["Val2", Date.parse("June 3, 1922")],
@@ -139,7 +139,7 @@ EOD
   end
 
   def test_advanced_html
-    r = Report.new([[nil,     true, :int,  lambda { |a| a[0] }, { :hidden => true, :use_as_id => true}],
+    r = ReportTable.new([[nil,     true, :int,  lambda { |a| a[0] }, { :hidden => true, :use_as_id => true}],
                     ["Value", true, :text, lambda { |a| a[1] }, { :column_group => "Column 1" }],
                     ["Date",  true, :date, lambda { |a| a[2] }, { :footer => lambda { |rows| rows.map(&:last).max }}]], 
                    nil, # data records

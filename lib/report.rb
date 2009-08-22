@@ -1,4 +1,4 @@
-class Report
+class ReportTable
   ObservedSelect = Struct.new(:form_url_options, :form_html_options, :select_name, :select_id, :select_options, :selected, :remote, :object)
 
   attr_accessor(:columns, :identifier, :title, :subtitle, :explanatory_text, :format_before, 
@@ -13,7 +13,7 @@ class Report
     lambda { |x|
       [
         (if text.is_a?(Symbol) then x.send(text) else text end),
-        { :controller => x.class.to_s.tableize.pluralize, :action => :show, :id => x }.merge(options) 
+        { :controller => x.class.name.titleize.downcase.pluralize.gsub(/\s+/, '_'), :action => :show, :id => x.id }.merge(options) 
       ]
     }
   end
@@ -37,6 +37,10 @@ class Report
   def id_column
     columns.detect { |c| c.options[:use_as_id] }
   end
+
+  def class_columns
+    columns.select { |c| c.options[:use_as_class] }
+  end
   
   def identifier=(i)
     @identifier = i
@@ -56,19 +60,24 @@ class Report
 
   def initialize(cols=nil, records=nil, options = { })
     record_klass = options[:model]  
-    unless cols.nil?
-      i = -1;
-      self.columns = cols.map { |col|
-        i += 1
-        col = infer_column(col, record_klass)
-        col.index = i
-        col
-      }
-    end
-    self.data = records
     options.each { |k,v| self.send("#{k}=", v) }
-  end
     
+    unless cols.nil?
+      self.columns = []
+      cols.each do |col| self.add_column(col) end
+    end
+    
+    self.data = records
+  end
+
+  def add_column(c)
+    col = infer_column(c, model)
+    col.index = columns.length
+    col.report = self
+    columns << col
+  end
+
+  
   def each_data_segment
     return unless @data_segments
     @data_segments.each do |ds|
@@ -85,7 +94,7 @@ class Report
   end
 
   def raw_data
-    data_segments.inject { |a,b| a + b }
+    data_segments.inject { |a,b| a + b } || []
   end
   
   def data_segments
@@ -111,7 +120,7 @@ class Report
   end
   
   def column_groups
-    visible_columns.group_by { |c| c.options[:column_group] }
+    visible_columns.partition_by { |c| c.options[:column_group] }
   end
   
   def visible_columns
@@ -157,6 +166,11 @@ class Report
     end
   end
   
+  def sorted_data(params)
+    order, direction = get_sort_criteria(params)
+    sort_data(data_to_output(raw_data), order, direction)    
+  end
+  
   private
   
   def get_sort_criteria(params)
@@ -170,9 +184,9 @@ class Report
   def format_text(type, data=nil, options={ })
     return type.to_s if (!type.is_a?(Symbol)) && data.nil?
     case type
-    when :date     : data.strftime(date_format)
-    when :time     : data.strftime(time_format)
-    when :datetime : data.strftime(datetime_format)
+    when :date     : data.maybe.strftime(date_format)
+    when :time     : data.maybe.strftime(time_format)
+    when :datetime : data.maybe.strftime(datetime_format)
     when :boolean  : data ? "Yes" : "No"
     when :int      : data.to_i.to_s
     when :float    : data.to_f.to_s
@@ -201,11 +215,7 @@ class Report
       col[4] ||= { }
       Column.new(*col)
     when Hash
-      Column.new(col[:name],
-                 col[:sortable],
-                 col[:type],
-                 col[:data_proc],
-                 col[:options] || { })
+      Column.new_from_hash(col)
     when Column
       col.clone
     else

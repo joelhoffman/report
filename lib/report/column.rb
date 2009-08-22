@@ -1,7 +1,21 @@
-class Report
+class ReportTable
   Column = Struct.new(:name, :sortable, :type, :data_proc, :option_hash, :index, :report) do
     include ActionView::Helpers::TagHelper
 
+    def self.new_from_hash(options)
+      def self.default(v1,v2)
+        if v1.nil? then v2 else v1 end
+      end
+      label = options.delete(:label)
+      options[:header] ||= maybe(label) { |l| l.to_s.humanize }
+      
+      Column.new(options.delete(:header),
+                  default(options.delete(:sortable), true),
+                  default(options.delete(:type),     :text),
+                  default(options.delete(:data_proc),label),
+                  options)
+    end
+    
     def promoted_to_column_group
       column = self.clone
       column.options[:column_group] = column.name
@@ -15,6 +29,12 @@ class Report
     
     def options
       self.option_hash ||= { }
+    end
+    
+    def sort_column
+      if options[:sort_using]
+        report.columns.detect { |c| c.name == options[:sort_using] }
+      end || self
     end
     
     def column_id
@@ -77,7 +97,7 @@ class Report
       current_order, current_direction = order_and_direction(params, identifier)
       
       if sortable
-        if column_id == current_order.to_s
+        if sort_column.column_id == current_order.to_s
         then "sortable-header current #{ current_direction }"
         else "sortable-header"
         end
@@ -101,20 +121,21 @@ class Report
 
     def sortable_html_header(params, identifier)
       current_order, current_direction = order_and_direction(params, identifier)
+      sc = sort_column
       
-      if current_order == column_id
+      if current_order == sc.column_id
         direction_to_link_to = (current_direction == 'desc') ? 'asc' : 'desc'
       else
         direction_to_link_to = 'asc'
       end
       
-      if column_id == current_order.to_s
+      if sc.column_id == current_order.to_s
         [name.blank? ? "-" : name, 
-         { :overwrite_params => { "_reports" => params["_reports"].merge({ identifier => { "order" => column_id, 
+         { :overwrite_params => { "_reports" => params["_reports"].merge({ identifier => { "order" => sc.column_id, 
                                                                              "direction" => direction_to_link_to  }}) } }] 
       else         
         [name.blank? ? "-" : name, 
-         { :overwrite_params => { "_reports" => params["_reports"].merge({ identifier => { "order" => column_id, 
+         { :overwrite_params => { "_reports" => params["_reports"].merge({ identifier => { "order" => sc.column_id, 
                                                                              "direction" => direction_to_link_to  }}) } }, 
         ]
       end
@@ -122,10 +143,8 @@ class Report
     
     def sv(tp, val)
       case tp
-      when :time     : val
-      when :date     : val
-      when :datetime : val
       when :boolean  : val ? 1 : 0
+      when :int, :float, :time, :date, :datetime : val
       else             val.nil? ? nil : val.to_s.downcase
       end
     end

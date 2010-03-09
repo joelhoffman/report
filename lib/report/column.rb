@@ -2,18 +2,46 @@ class ReportTable
   Column = Struct.new(:name, :sortable, :type, :data_proc, :option_hash, :index, :report) do
     include ActionView::Helpers::TagHelper
 
+    def type_for_class(data)
+      if type == :format && data.respond_to?(:first)
+        data.first
+      else
+        type
+      end
+    end
+        
+    
+    def default_sort_direction
+      options[:default_sort_direction] || 
+        case type
+        when :date, :time, :datetime then 'desc'
+        else 'asc'
+        end
+    end
+    
+    def sort_by_sql?
+      options.has_key?(:sql_sort)
+    end
+    
+    def sql_sort
+      options[:sql_sort]
+    end
+    
     def self.new_from_hash(options)
       def self.default(v1,v2)
         if v1.nil? then v2 else v1 end
       end
       label = options.delete(:label)
-      options[:header] ||= maybe(label) { |l| l.to_s.humanize }
+      
+      if label
+        options[:header] ||= l.to_s.humanize
+      end
       
       Column.new(options.delete(:header),
                   default(options.delete(:sortable), true),
                   default(options.delete(:type),     :text),
                   default(options.delete(:data_proc),label),
-                  options)
+                  options[:options])
     end
     
     def promoted_to_column_group
@@ -45,13 +73,19 @@ class ReportTable
       self.options[:column_group] || ""
     end
    
-    def format_html_header(params, identifier)
+    def format_html_header(params, identifier, options)
       if sortable
-        [:link, sortable_html_header(params, identifier)]
+        link = sortable_html_header(params, identifier, options)
+        if options[:link_proc]
+          [:html, options[:link_proc].call(*link)]
+        else
+          [:link, link]
+        end
       elsif name.is_a? Array
         [:format, name]
       else
-        [:text, name]
+        header = report.i18n ? I18n.t(name) : name 
+        [:text, header]
       end
     end
 
@@ -109,17 +143,11 @@ class ReportTable
     private
 
     def order_and_direction(params, identifier)
-      params['_reports'] ||= { }
-      params['_reports'][identifier] ||= { }
-      
-      current_order, current_direction = params['_reports'][identifier]["order"], params['_reports'][identifier]["direction"]
-      current_direction ||= 'desc'
-
-      return current_order, current_direction
+      report.get_sort_criteria(params)
     end
     
 
-    def sortable_html_header(params, identifier)
+    def sortable_html_header(params, identifier, options = {})
       current_order, current_direction = order_and_direction(params, identifier)
       sc = sort_column
       
@@ -129,14 +157,17 @@ class ReportTable
         direction_to_link_to = 'asc'
       end
       
+      header = report.i18n ? I18n.t(name) : name 
+      
+      p = options[:params] || {}
       if sc.column_id == current_order.to_s
-        [name.blank? ? "-" : name, 
-         { :overwrite_params => { "_reports" => params["_reports"].merge({ identifier => { "order" => sc.column_id, 
-                                                                             "direction" => direction_to_link_to  }}) } }] 
+        [header.blank? ? "-" : header,
+          { :overwrite_params => p.merge({ "_reports" => params["_reports"].merge({ identifier => { "order" => sc.column_id, 
+                                                                             "direction" => direction_to_link_to  }}) }) }] 
       else         
-        [name.blank? ? "-" : name, 
-         { :overwrite_params => { "_reports" => params["_reports"].merge({ identifier => { "order" => sc.column_id, 
-                                                                             "direction" => direction_to_link_to  }}) } }, 
+        [header.blank? ? "-" : header,
+        { :overwrite_params => p.merge({ "_reports" => params["_reports"].merge({ identifier => { "order" => sc.column_id, 
+                                                                             "direction" => direction_to_link_to  }}) }) }, 
         ]
       end
     end

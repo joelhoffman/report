@@ -76,11 +76,11 @@ class ReportTableTest < Test::Unit::TestCase
     assert_equal("a",                                                r.format_html(:text, "a"))
     assert_equal("&amp;",                                            r.format_html(:text, "&"))
     assert_equal('<div style="white-space: pre">&amp;</div>',        r.format_html(:preformatted_text, '&'))
-    assert_equal('<div style="text-align: right">0.02</div>',        r.format_html(:float, 0.0201))
-    assert_equal('<div style="text-align: right">0</div>',           r.format_html(:int, 0.1))
+    assert_equal('0.02',        r.format_html(:float, 0.0201))
+    assert_equal(0,           r.format_html(:int, 0.1))
     assert_equal("06-May-1978",                                      r.format_html(:date, Date.parse("May 6, 1978")))
     assert_equal("14:00",                                            r.format_html(:time, Time.parse("2pm")))
-    assert_equal("06-May-1978 14:00",                                r.format_html(:datetime, Time.parse("May 6, 1978 2pm")))
+    assert_equal("05/06/1978  2:00PM",                                r.format_html(:datetime, Time.parse("May 6, 1978 2pm")))
     assert_equal("Yes",                                              r.format_html(:boolean, true))
     assert_equal("£0.05",                                            r.format_html(:currency, 0.05))
     assert_equal('<a href="http://hello/world?a=b&amp;c=d">YES</a>', r.format_html(:link, ["YES", { :a => 'b', :c => 'd' }]))
@@ -121,18 +121,18 @@ EOD
                     ["val3", Date.parse("October 14, 2011")]])
 
     assert_equal_ignoring_whitespace_and_quote_style(<<EOD, r.html_table({ }))
-<table class="report-table report" style="width: auto;">
+<table class="report-table report" id="report" style="">
   <thead>
     <tr><th class=""><span>Value</span></th>
         <th class=""><span>Date</span></th></tr>
   </thead>
   <tbody>
-    <tr class="odd"><td>val1</td>
-        <td>05/01/1969</td></tr>
-    <tr class="even"><td>Val2</td>
-        <td>06/03/1922</td></tr>
-    <tr class="odd"><td>val3</td>
-        <td>10/14/2011</td></tr>
+    <tr class="odd"><td class="text">val1</td>
+      <td class="date">05/01/1969</td></tr>
+    <tr class="even"><td class="text">Val2</td>
+      <td class="date">06/03/1922</td></tr>
+    <tr class="odd"><td class="text">val3</td>
+      <td class="date">10/14/2011</td></tr>
   </tbody>
 </table>
 EOD
@@ -142,10 +142,9 @@ EOD
     r = ReportTable.new([[nil,     true, :int,  lambda { |a| a[0] }, { :hidden => true, :use_as_id => true}],
                     ["Value", true, :text, lambda { |a| a[1] }, { :column_group => "Column 1" }],
                     ["Date",  true, :date, lambda { |a| a[2] }, { :footer => lambda { |rows| rows.map(&:last).max }}]], 
-                   nil, # data records
-                   :data_segments => [[[0, "val1", Date.parse("May 1, 1969")],
-                                       [1, "Val2", Date.parse("June 3, 1968")]],
-                                      [[2, "val3", Date.parse("October 14, 2011")]]],
+                   [[0, "val1", Date.parse("May 1, 1969")],
+                    [1, "Val2", Date.parse("June 3, 1968")],
+                    [2, "val3", Date.parse("October 14, 2011")]],
                    :controller => MockController.new,
                    :show_footer => true,
                    :identifier => "xyz",
@@ -156,7 +155,7 @@ EOD
     # column, a footer containing the maximum date, and sorted by date
 
     assert_equal_ignoring_whitespace_and_quote_style(<<EOD, r.html_table({ '_reports' => { 'xyz' => { 'order' => 'Date', 'direction' => 'asc' }}}))
-<table class="report-table xyz" style="width: 100%;">
+<table class="report-table xyz" id="xyz" style="width: 100%;">
   <colgroup span="1"></colgroup>
   <colgroup span="1"></colgroup>
   <thead>
@@ -177,14 +176,12 @@ EOD
     <tr><td></td><td>10/14/2011</td></tr>
   </tfoot>
   <tbody>
-    <tr class="odd" id="xyz:1"><td>Val2</td>
-        <td>06/03/1968</td></tr>
-    <tr class="even" id="xyz:0"><td>val1</td>
-        <td>05/01/1969</td></tr>
-  </tbody>
-  <tbody>
-    <tr class="odd" id="xyz:2"><td>val3</td>
-        <td>10/14/2011</td></tr>
+    <tr class="odd" id="xyz--1"><td class="text">Val2</td>
+      <td class="date">06/03/1968</td></tr>
+    <tr class="even" id="xyz--0"><td class="text">val1</td>
+      <td class="date">05/01/1969</td></tr>
+    <tr class="odd" id="xyz--2"><td class="text">val3</td>
+      <td class="date">10/14/2011</td></tr>
   </tbody>
 </table>
 EOD

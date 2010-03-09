@@ -16,8 +16,25 @@ ActiveRecord::Base.class_eval do
     rc.merge(@report_columns || {})
   end
   
-  def self.report_column(label, options = {})
+  def self.report_column(label, options = {}, &block)
     @report_columns ||= { }
     @report_columns[label] = ReportTable::Column.new_from_hash({:label => label}.merge(options))
+    @report_columns[label].data_proc = block if block
   end
 end
+
+unless [].respond_to?(:partition_by) 
+  module Enumerable
+    def partition_by(&block)
+      self.inject([]) do |partitions, i|
+        p = yield i
+        if !partitions.empty? && p == partitions[-1][0]
+          partitions[-1][1] << i        
+        else
+          partitions << [p, [i]]
+        end
+        partitions
+      end
+    end
+  end
+end  

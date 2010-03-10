@@ -34,7 +34,7 @@ class ReportTable
       label = options.delete(:label)
       
       if label
-        options[:header] ||= l.to_s.humanize
+        options[:header] ||= label.to_s.humanize
       end
       
       Column.new(options.delete(:header),

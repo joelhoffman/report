@@ -84,7 +84,7 @@ class ReportTable
       elsif name.is_a? Array
         [:format, name]
       else
-        header = report.i18n ? I18n.t(name) : name 
+        header = report.i18n && !name.blank? ? I18n.t(name) : name 
         [:text, header]
       end
     end

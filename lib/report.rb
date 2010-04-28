@@ -231,7 +231,7 @@ class ReportTable
             elsif col == :edit or col == :show
               Column.new('', false, :link, self.class.link_to(:link_text => col.to_s.capitalize, :action => col))
             else
-              Column.new(col.to_s.humanize, true, :text, col)
+              Column.new(col.to_s, true, :text, col)
             end
 
       srt = if sort_by == col then true elsif sort_by then false else nil end

@@ -84,8 +84,7 @@ class ReportTable
       elsif name.is_a? Array
         [:format, name]
       else
-        header = report.i18n && !name.blank? ? I18n.t(name) : name 
-        [:text, header]
+        [:text, i18n_name]
       end
     end
 
@@ -145,7 +144,18 @@ class ReportTable
     def order_and_direction(params, identifier)
       report.get_sort_criteria(params)
     end
-    
+
+    def i18n_name
+      if report.i18n && !name.blank?
+        if report.model.columns.map(&:name).include?(name)
+          report.model.human_attribute_name(name)
+        else
+          I18n.t(name)
+        end
+      else
+        name
+      end
+    end
 
     def sortable_html_header(params, identifier, options = {})
       current_order, current_direction = order_and_direction(params, identifier)
@@ -157,7 +167,7 @@ class ReportTable
         direction_to_link_to = 'asc'
       end
       
-      header = report.i18n ? I18n.t(name) : name 
+      header = i18n_name 
       
       p = options[:params] || {}
       if sc.column_id == current_order.to_s

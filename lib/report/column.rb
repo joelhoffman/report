@@ -41,7 +41,7 @@ class ReportTable
                   default(options.delete(:sortable), true),
                   default(options.delete(:type),     :text),
                   default(options.delete(:data_proc),label),
-                  options[:options])
+                  options)
     end
     
     def promoted_to_column_group
